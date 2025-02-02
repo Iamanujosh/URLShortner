@@ -1,0 +1,20 @@
+{
+  "name": "urlshortner",
+  "version": "1.0.0",
+  "description": "url shortner to return short url",
+  "homepage": "https://github.com/Iamanujosh/URLShortner#readme",
+  "bugs": {
+    "url": "https://github.com/Iamanujosh/URLShortner/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Iamanujosh/URLShortner.git"
+  },
+  "license": "ISC",
+  "author": "anushka",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
