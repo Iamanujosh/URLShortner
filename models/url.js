@@ -15,6 +15,10 @@ const urlSchema = new mongoose.Schema({
         type:Number,
         default:true,
     },
+    createdBy : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "users",
+    }
 });
 
 const URL = mongoose.model("url",urlSchema);

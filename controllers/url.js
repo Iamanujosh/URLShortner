@@ -1,6 +1,6 @@
 const URL = require("../models/url");
 const { nanoid } = require("nanoid");
-
+//using for generate shortId
 async function handleStoreUrl(req,res){
     const body = req.body;
     if(!body.url){return res.status(400).json({msg:"url is requires"})}
@@ -10,6 +10,7 @@ async function handleStoreUrl(req,res){
         shortId: shortid,
         redirectUrl:body.url,
         urlClicks: 0,
+        createdBy: req.user._id,
 });
 
 return res.render("home",{
@@ -17,6 +18,7 @@ return res.render("home",{
 })
 }
 
+//using to mapping short URL with redirect URL
 async function handleRedirectUrl(req,res){
     const {shortId} = req.params;
     const url = await URL.findOne({shortId});
@@ -29,5 +31,4 @@ async function handleRedirectUrl(req,res){
 module.exports = {
     handleStoreUrl,
     handleRedirectUrl,
-
 }

@@ -1,0 +1,149 @@
+Authentication Patterns
+1. Stateful - maintains data
+Example: Anushka wants to park her car in a mall, so Adarsh parks the car and creates a ticket for her and also notes in his diary Anushka's ticket number and her car number. So, whenever Anushka comes to Adarsh for her car, he checks in his diary and gives her car. This diary is basically a state which contains a map of data.
+
+How this works in Node.js:
+1. Client requests to server with his username and password, and server returns him a unique id (sessionId).
+2. Now whenever the client requests to the server, he sends his id to the server, and if it is valid, the server gives access to the client.
+
+How server gives us uid:
+1. Cookie (Browser)
+2. Response (JSON used for mobile apps)
+3. Header (REST)
+
+Express flow:
+Client sends request and his session id to the server. First, the request is checked by middleware. If it is valid, it goes to the endpoint; else, it is rejected.
+
+2. Stateless - does not contain data
+
+Steps for Stateful Authentication:
+
+1. Create a new user collection.
+
+1.1 Create a model of users. UserSchema = name, email, password.
+
+1.2 Create user routes:
+First Route: /
+Second Route: /login
+
+1.3 Create controller for signup route:
+
+userSignup - takes name, email, password from request, then adds it to the database and returns to the homepage.
+
+userLogin - takes email and password and validates it in the database. If okay, then moves to the home page.
+
+1.4 Register these routes in index.js:
+app.use("/user", userRoute);
+
+1.5 Create EJS for signup - send form post request to /user
+
+login - send form post request to /user/login
+
+1.6 Create signup route in staticRoutes
+
+Create login route in staticRoutes
+
+2. Generate cookie at the time of login
+
+2.1 Install uuid
+2.2 Import v4: uuidv4
+2.3 Now in user login, every time a user logs in successfully, generate a sessionId = uuidv4()
+2.4 Now create a service folder, create auth.js in it.
+
+Create a HashMap - sessionIdToUserMap
+
+Now create two functions:
+
+setUser - which takes a sessionId and username and maps sessionId to user.
+
+getUser - takes an id and returns user.
+
+2.5 In user controller, import setUser, set sessionId to userLogin constant, and set res.cookie(cookieName, valueToBeStored).
+
+2.6 Create a middleware folder, auth.js file - create an async middleware. In this, take userId from req.cookies?.uid and check if that uid is in the database or not. If it is, then call next; else, redirect to login.
+
+2.7 To use cookie, install cookie-parser.
+
+Inside index.js, use that parser and app.use("/url", restrictToUserLogin, urlRoute); to access /url, we need to be logged in.
+
+3. Also, when we visit the home page, the URLs created by other users are visible to everyone.
+Solution:
+3.1 In model schema, add:
+createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "users",
+}
+3.2 Inside url controller, add createdBy: req.user._id. The req.user = user is added by middleware. This will add the object id of the user to his entry.
+
+3.3 Now, while returning the URLs to users, we need to change:
+3.3.1 Create checkAuth function which will just give us the user requested and then add this middleware to staticRoutes.
+
+3.3.2 Inside staticRoutes.js, check if req.user is available. If not, then redirect to /login; else, return createdBy: req.user._id.
+
+4. Now there is an issue: whenever the server is restarted, all users' cookies get forgotten by the map.
+Solution: For this, we have Stateless Authentication.
+As the above example where Adarsh was storing information about Anushka's car number, here he won't store any information but give that information to Anushka and put a stamp on it so she can't change that information (Example for stateless).
+We can do this using JSON Web Token (JWT AUTH).
+
+How to do it:
+1. Install jsonwebtoken.
+2. Inside services auth.js, remove map and import jwt and create secret.
+3. Inside setUser, create payload with user id, email and then return payload with secret.
+4. Also, while getting user inside services auth.js, we change getUser function by just adding jwt.verify for user with secret.
+
+How to return token in response (json):
+
+We can store such a token on the user device or any file. To get this token, we can use a header in which we put the value of the token. For this, we do basically have a built-in authorization header.
+
+Example of setting the authorization header with a JWT token:
+
+const { getUser } = require("../services/auth");
+
+async function restrictToUserLogin(req, res, next) {
+    const authHeader = req.headers['authorization'];
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.redirect("/login");
+    }
+
+    const token = authHeader.split("Bearer ")[1];
+
+    try {
+        const user = await getUser(token);
+        if (!user) {
+            return res.redirect("/login");
+        }
+        req.user = user;
+        next();
+    } catch (error) {
+        console.error("Authentication error:", error);
+        return res.redirect("/login");
+    }
+}
+
+async function checkAuth(req, res, next) {
+    const authHeader = req.headers['authorization'];
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        req.user = null; // Ensure req.user is explicitly null if no auth
+        return next();
+    }
+
+    const token = authHeader.split("Bearer ")[1];
+
+    try {
+        const user = await getUser(token);
+        req.user = user || null; // Set user if valid, otherwise null
+    } catch (error) {
+        console.error("Auth check error:", error);
+        req.user = null;
+    }
+
+    next();
+}
+
+module.exports = {
+    restrictToUserLogin,
+    checkAuth,
+};
+
