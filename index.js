@@ -24,7 +24,7 @@ app.use(cookieParser());
 app.use(checkForAuthantication);
 
 app.use("/url",urlRoute);
-app.use("/user",restrictToRoles(["user"]),userRoute);
+app.use("/user",userRoute);
 app.use("/",staticRoute);
 
 

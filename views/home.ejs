@@ -24,12 +24,33 @@
         <th>Original Url</th>
         <th>Shorten Url</th>
         <th>Clicks</th>
+        <th>IP</th>
+        <th>Country</th>
+        <th>Device</th>
     </tr>
     <% urls.forEach(url => { %>
         <tr>
             <td><%= url.redirectUrl %></td>
             <td><a href="/url/<%= url.shortId %>">http:/localhost:8001/url/<%= url.shortId %></a></td>
             <td><%= url.urlClicks %></td>
+            <td>
+               <% url.analytics.forEach(analytics => { %>
+                <p><%= analytics.ip %></p>
+             <%  }); %>
+            </td>
+            <td>
+                <% url.analytics.forEach(analytics => { %>
+                 <p><%= analytics.location %></p>
+              <%  }); %>
+             </td>
+             <td>
+                <% url.analytics.forEach(analytics => { %>
+                 <p><%= analytics.device %></p>
+              <%  }); %>
+             </td>
+              <td>
+            
+        </td>
         </tr>
     <% }) %>
  </table>

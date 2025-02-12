@@ -18,8 +18,25 @@ const urlSchema = new mongoose.Schema({
     createdBy : {
         type: mongoose.Schema.Types.ObjectId,
         ref: "users",
-    }
-});
+    },
+     
+    analytics: [{
+        timestamp: {
+            type:Date,
+            default:Date.now,
+        },
+        ip:{
+            type:String,
+        },
+        location:{
+            type:String,
+        },
+        device:{
+            type:String,
+        },
+    },],
+    expiresAt: { type: Date },// Expiry timestamp
+},);
 
 const URL = mongoose.model("url",urlSchema);
 
